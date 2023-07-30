@@ -22,6 +22,4 @@ router.delete('/cards/:cardId/likes', dislikeCard);
 // добавить лайк
 router.put('/cards/:cardId/likes', likeCard);
 
-
-
 module.exports = router;
