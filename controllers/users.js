@@ -1,8 +1,13 @@
 const User = require('../models/user');
+const {
+  BAD_REQUEST_ERROR,
+  NOT_FOUND_ERROR,
+  INTERNAL_SERVER_ERROR,
+} = require('../utils/errors');
 
 const getUsers = (req, res) => User.find({})
   .then((users) => res.status(200).send(users))
-  .catch(() => res.status(500).send({ message: 'Непредвиденная ошибка' }));
+  .catch(() => res.status(INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка' }));
 
 const getUserById = (req, res) => {
   const { userId } = req.params;
@@ -11,18 +16,18 @@ const getUserById = (req, res) => {
     .then((user) => {
       if (!user) {
         return res
-          .status(404)
+          .status(NOT_FOUND_ERROR)
           .send({ message: 'Пользователь не найден' });
       }
       return res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(400).send({
-          message: 'Пользователь не найден',
+        return res.status(BAD_REQUEST_ERROR).send({
+          message: 'Пользователь не найден, некоректный id пользователя',
         });
       }
-      return res.status(500).send({ message: 'Непредвиденная ошибка' });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка' });
     });
 };
 
@@ -33,11 +38,11 @@ const createUser = (req, res) => {
     .then((newUser) => res.status(201).send(newUser))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({
+        return res.status(BAD_REQUEST_ERROR).send({
           message: 'Пользователь не был создан, данные не валидны',
         });
       }
-      return res.status(500).send({ message: 'Непредвиденная ошибка' });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка' });
     });
 };
 
@@ -52,11 +57,11 @@ const updateUser = (req, res) => {
     .then((updateUserData) => res.status(200).send(updateUserData))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({
+        return res.status(BAD_REQUEST_ERROR).send({
           message: 'Пользователь не был обновлен, данные не валидны',
         });
       }
-      return res.status(500).send({ message: 'Непредвиденная ошибка' });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка' });
     });
 };
 
@@ -71,11 +76,11 @@ const updateAvatar = (req, res) => {
     .then((updateAvatarData) => res.status(200).send(updateAvatarData))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({
+        return res.status(BAD_REQUEST_ERROR).send({
           message: 'Аватар не был обновлен, данные не валидны',
         });
       }
-      return res.status(500).send({ message: 'Непредвиденная ошибка' });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка' });
     });
 };
 

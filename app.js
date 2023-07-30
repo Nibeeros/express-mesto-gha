@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const userRouters = require('./routes/users');
 const cardRouters = require('./routes/cards');
+const { NOT_FOUND_ERROR } = require('./utils/errors');
 
 const { PORT = 3000 } = process.env;
 
@@ -28,7 +29,7 @@ app.use(userRouters);
 app.use(cardRouters);
 
 app.use('*', (req, res) => {
-  res.status(404).send({ message: 'Страница не найдена' });
+  res.status(NOT_FOUND_ERROR).send({ message: 'Страница не найдена' });
 });
 
 app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
