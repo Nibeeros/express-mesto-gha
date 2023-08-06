@@ -117,7 +117,7 @@ const login = (req, res, next) => {
           if (!isPasswordMatch) {
             return next(UnauthorizedError('Неправильный пароль'));
           }
-          const token = jwt.sign({ id: admin._id }, 'some-secret-key', { expiresIn: '7d' });
+          const token = jwt.sign({ id: admin._id }, 'some-secret-key', { expiresIn: '2d' });
           return res.status(200).send({ token });
         });
       }
