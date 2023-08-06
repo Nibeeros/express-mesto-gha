@@ -1,6 +1,6 @@
-import { verify } from 'jsonwebtoken';
+const jwt = require('jsonwebtoken');
 
-import UnauthorizedError from '../errors/unauthorized-error';
+const UnauthorizedError = require('../errors/unauthorized-error');
 
 const auth = (req, res, next) => {
   const { authorization } = req.headers;
@@ -13,7 +13,7 @@ const auth = (req, res, next) => {
   let payload;
 
   try {
-    payload = verify(token, 'some-secret-key');
+    payload = jwt.verify(token, 'some-secret-key');
   } catch (err) {
     return next(new UnauthorizedError('Необходима авторизация'));
   }
@@ -23,6 +23,6 @@ const auth = (req, res, next) => {
   return next();
 };
 
-export default {
+module.exports = {
   auth,
 };
