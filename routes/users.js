@@ -1,25 +1,55 @@
+/* eslint-disable import/no-extraneous-dependencies */
 const router = require('express').Router();
+const { celebrate, Joi } = require('celebrate');
+const { errors } = require('celebrate');
 const {
   getUsers,
   getUserById,
-  createUser,
   updateUser,
   updateAvatar,
+  getCurrentUser,
 } = require('../controllers/users');
 
 // вернуть пользователя по _id
-router.get('/users/:userId', getUserById);
+router.get(
+  '/users/:userId',
+  celebrate({
+    params: Joi.object().keys({
+      userId: Joi.string().required().min(24).max(24),
+    }),
+  }),
+  getUserById,
+);
 
 // вернуть всех пользователей
 router.get('/users', getUsers);
 
-// создать пользователя
-router.post('/users', createUser);
+router.get('/users/me', getCurrentUser);
 
 // обновить аватар
-router.patch('/users/me/avatar', updateAvatar);
+router.patch(
+  '/users/me/avatar',
+  celebrate({
+    body: Joi.object().keys({
+      avatar: Joi.string().required().min(2).pattern(/(https?:\/\/)(w{3}\.)?(((\d{1,3}\.){3}\d{1,3})|((\w-?)+\.(ru|com)))(:\d{2,5})?((\/.+)+)?\/?#?/),
+    }),
+  }),
+
+  updateAvatar,
+);
 
 // обновить профиль
-router.patch('/users/me', updateUser);
+router.patch(
+  '/users/me',
+  celebrate({
+    body: Joi.object().keys({
+      name: Joi.string().required().min(2).max(30),
+      about: Joi.string().required().min(2).max(30),
+    }),
+  }),
+  updateUser,
+);
+
+router.use(errors());
 
 module.exports = router;

@@ -1,17 +1,15 @@
 const Card = require('../models/card');
-const {
-  BAD_REQUEST_ERROR,
-  NOT_FOUND_ERROR,
-  INTERNAL_SERVER_ERROR,
-} = require('../utils/errors');
+const NotFoundError = require('../errors/not-found-error');
+const BadRequest = require('../errors/bad-request-error');
+const ForbiddenError = require('../errors/forbidden-errors');
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.status(200).send(cards))
-    .catch(() => res.status(INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка' }));
+    .catch(next);
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const owner = req.user._id;
   const { name, link } = req.body;
 
@@ -19,72 +17,79 @@ const createCard = (req, res) => {
     .then((newCard) => res.status(201).send(newCard))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res
-          .status(BAD_REQUEST_ERROR)
-          .send({ message: 'Карточка не была создана, данные не валидны' });
+        next(new BadRequest('Аватар не обновлен, переданы невалидные данные'));
+      } else {
+        next(err);
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка' });
     });
 };
 
-const deleteCardById = (req, res) => {
+const deleteCardById = (req, res, next) => {
   const { cardId } = req.params;
 
   return Card.findByIdAndRemove(cardId)
     .then((card) => {
       if (!card) {
-        return res
-          .status(NOT_FOUND_ERROR)
-          .send({ message: 'Карточки с таким id не найдено' });
+        throw new NotFoundError('Карточка с таким id не найдена');
       }
-      return res.status(200).send(card);
+      // eslint-disable-next-line eqeqeq
+      if (card.owner == req.user.id) {
+        return Card.findByIdAndRemove(cardId)
+          // eslint-disable-next-line no-shadow
+          .then((card) => {
+            res.status(200).send(card);
+          });
+      }
+      throw new ForbiddenError('Можно удалять только свои карточки');
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST_ERROR).send({ message: 'Карточка не была удалена, некоректный id карточки' });
-      } else res.status(INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка' });
+        next(new BadRequest('Карточка не удалена, некоректный id карточки'));
+      } else {
+        next(err);
+      }
     });
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
+    { $addToSet: { likes: req.user.id } },
     { new: true },
   )
     .then((card) => {
       if (!card) {
-        return res
-          .status(NOT_FOUND_ERROR)
-          .send({ message: 'Карточка с таким id не найдена' });
+        throw new NotFoundError('Карточка с таким id не найдена');
       }
       return res.status(200).send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST_ERROR).send({ message: 'Лайк не был поставлен, некоректный id карточки' });
-      } else res.status(INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка' });
+        next(new BadRequest('Лайк не поставлен, некоректный id карточки'));
+      } else {
+        next(err);
+      }
     });
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user._id } },
+    { $pull: { likes: req.user.id } },
     { new: true },
   )
     .then((card) => {
       if (!card) {
-        return res
-          .status(NOT_FOUND_ERROR)
-          .send({ message: 'Карточка с таким id не найдена' });
+        throw new NotFoundError('Карточка с таким id не найдена');
       }
       return res.status(200).send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST_ERROR).send({ message: 'Лайк не был удален, некоректный id карточки' });
-      } else res.status(INTERNAL_SERVER_ERROR).send({ message: 'Непредвиденная ошибка' });
+        next(new BadRequest('Лайк не удален, некоректный id карточки'));
+      } else {
+        next(err);
+      }
     });
 };
 
