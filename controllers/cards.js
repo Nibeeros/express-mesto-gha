@@ -1,5 +1,5 @@
 const Card = require('../models/card');
-// eslint-disable-next-line import/no-unresolved
+
 const NotFoundError = require('../errors/not-found-error');
 const BadRequest = require('../errors/bad-request-error');
 const ForbiddenError = require('../errors/forbidden-errors');
@@ -11,7 +11,7 @@ const getCards = (req, res, next) => {
 };
 
 const createCard = (req, res, next) => {
-  const owner = req.user._id;
+  const owner = req.user.id;
   const { name, link } = req.body;
 
   return Card.create({ name, link, owner })
@@ -28,7 +28,7 @@ const createCard = (req, res, next) => {
 const deleteCardById = (req, res, next) => {
   const { cardId } = req.params;
 
-  return Card.findByIdAndRemove(cardId)
+  Card.findById(cardId)
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка с таким id не найдена');

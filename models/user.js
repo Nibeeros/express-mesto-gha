@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 const mongoose = require('mongoose');
 const validator = require('validator');
 
@@ -9,12 +8,14 @@ const userSchema = new mongoose.Schema({
     minlength: 2,
     maxlength: 30,
   },
+
   about: {
     type: String,
     default: 'Исследователь',
     minlength: 2,
     maxlength: 30,
   },
+
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
@@ -22,6 +23,7 @@ const userSchema = new mongoose.Schema({
       validator: (value) => validator.isURL(value),
     },
   },
+
   email: {
     type: String,
     required: true,
@@ -30,6 +32,7 @@ const userSchema = new mongoose.Schema({
       validator: (value) => validator.isEmail(value),
     },
   },
+
   password: {
     type: String,
     required: true,

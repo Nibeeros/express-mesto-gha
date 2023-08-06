@@ -1,13 +1,15 @@
-/* eslint-disable no-undef */
-/* eslint-disable import/no-extraneous-dependencies */
 const bcrypt = require('bcrypt');
+
+const saltRounds = 10;
+
 const jwt = require('jsonwebtoken');
+
+const User = require('../models/user');
+
 const NotFoundError = require('../errors/not-found-error');
 const BadRequest = require('../errors/bad-request-error');
 const UnauthorizedError = require('../errors/unauthorized-error');
 const ConflictError = require('../errors/conflict-errors');
-
-const saltRounds = 10;
 
 const getUsers = (req, res, next) => User.find({})
   .then((users) => res.status(200).send(users))
@@ -40,7 +42,9 @@ const createUser = (req, res, next) => {
   if (!email || !password) {
     throw new BadRequest('Не переданы email или пароль');
   }
+
   User.findOne({ email })
+
     .then((admin) => {
       if (admin) {
         throw new ConflictError('Пользователь с таким email уже существует');
@@ -57,6 +61,7 @@ const createUser = (req, res, next) => {
       avatar: newUser.avatar,
       email: newUser.email,
     }))
+
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequest('Пользователь не создан, переданы невалидные данные'));
@@ -108,6 +113,7 @@ const login = (req, res, next) => {
   if (!email || !password) {
     throw new BadRequest('Не переданы email или пароль');
   }
+
   return User.findOne({ email }).select('+password')
     .then((admin) => {
       if (!admin) {
@@ -115,9 +121,11 @@ const login = (req, res, next) => {
       } else {
         bcrypt.compare(password, admin.password, (err, isPasswordMatch) => {
           if (!isPasswordMatch) {
-            return next(UnauthorizedError('Неправильный пароль'));
+            return next(new UnauthorizedError('Неправильный пароль'));
           }
-          const token = jwt.sign({ id: admin._id }, 'some-secret-key', { expiresIn: '2d' });
+
+          const token = jwt.sign({ id: admin._id }, 'some-secret-key', { expiresIn: '7d' });
+
           return res.status(200).send({ token });
         });
       }

@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
 const { errors } = require('celebrate');
@@ -10,7 +9,12 @@ const {
   getCurrentUser,
 } = require('../controllers/users');
 
-// вернуть пользователя по _id
+// возвращает всех пользователей
+router.get('/users', getUsers);
+
+router.get('/users/me', getCurrentUser);
+
+// возвращает пользователя по _id
 router.get(
   '/users/:userId',
   celebrate({
@@ -21,24 +25,7 @@ router.get(
   getUserById,
 );
 
-// вернуть всех пользователей
-router.get('/users', getUsers);
-
-router.get('/users/me', getCurrentUser);
-
-// обновить аватар
-router.patch(
-  '/users/me/avatar',
-  celebrate({
-    body: Joi.object().keys({
-      avatar: Joi.string().required().min(2).pattern(/(https?:\/\/)(w{3}\.)?(((\d{1,3}\.){3}\d{1,3})|((\w-?)+\.(ru|com)))(:\d{2,5})?((\/.+)+)?\/?#?/),
-    }),
-  }),
-
-  updateAvatar,
-);
-
-// обновить профиль
+// обновляет профиль
 router.patch(
   '/users/me',
   celebrate({
@@ -48,6 +35,18 @@ router.patch(
     }),
   }),
   updateUser,
+);
+
+// обновляет аватар профиля
+router.patch(
+  '/users/me/avatar',
+  celebrate({
+    body: Joi.object().keys({
+      avatar: Joi.string().required().min(2).pattern(/(https?:\/\/)(w{3}\.)?(((\d{1,3}\.){3}\d{1,3})|((\w-?)+\.(ru|com)))(:\d{2,5})?((\/.+)+)?\/?#?/),
+    }),
+  }),
+
+  updateAvatar,
 );
 
 router.use(errors());
