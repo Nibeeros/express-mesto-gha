@@ -1,3 +1,4 @@
+/* eslint-disable eol-last */
 class NotFoundError extends Error {
   constructor(message) {
     super(message);
