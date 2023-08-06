@@ -61,6 +61,8 @@ app.use('*', (req, res, next) => {
   next(new NotFoundError('Маршрут не найден'));
 });
 
+app.use(errors());
+
 app.use((err, req, res, next) => {
   if (err.statusCode) {
     res.status(err.statusCode).send({ message: err.message });

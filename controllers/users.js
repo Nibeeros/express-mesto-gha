@@ -1,9 +1,12 @@
+/* eslint-disable no-undef */
+/* eslint-disable import/no-extraneous-dependencies */
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const NotFoundError = require('../errors/not-found-error');
 const BadRequest = require('../errors/bad-request-error');
 const UnauthorizedError = require('../errors/unauthorized-error');
 const ConflictError = require('../errors/conflict-errors');
+
 const saltRounds = 10;
 
 const getUsers = (req, res, next) => User.find({})
@@ -112,7 +115,7 @@ const login = (req, res, next) => {
       } else {
         bcrypt.compare(password, admin.password, (err, isPasswordMatch) => {
           if (!isPasswordMatch) {
-            throw new UnauthorizedError('Неправильный пароль');
+            return next(UnauthorizedError('Неправильный пароль'));
           }
           const token = jwt.sign({ id: admin._id }, 'some-secret-key', { expiresIn: '7d' });
           return res.status(200).send({ token });
