@@ -8,7 +8,6 @@ const User = require('../models/user');
 
 const NotFoundError = require('../errors/not-found-error');
 const BadRequest = require('../errors/bad-request-error');
-const UnauthorizedError = require('../errors/unauthorized-error');
 const ConflictError = require('../errors/conflict-errors');
 
 const getUsers = (req, res, next) => User.find({})
@@ -36,38 +35,37 @@ const getUserById = (req, res, next) => {
 
 const createUser = (req, res, next) => {
   const {
-    name, about, avatar, email, password,
+    name,
+    about,
+    avatar,
+    email,
+    password,
   } = req.body;
 
-  if (!email || !password) {
-    throw new BadRequest('Не переданы email или пароль');
-  }
-
-  User.findOne({ email })
-
-    .then((admin) => {
-      if (admin) {
-        throw new ConflictError('Пользователь с таким email уже существует');
-      } else {
-        return bcrypt.hash(password, saltRounds)
-          .then((hash) => User.create({
-            name, about, avatar, email, password: hash,
-          }));
-      }
-    })
-    .then((newUser) => res.status(201).send({
-      name: newUser.name,
-      about: newUser.about,
-      avatar: newUser.avatar,
-      email: newUser.email,
-    }))
-
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequest('Пользователь не создан, переданы невалидные данные'));
-      } else {
-        next(err);
-      }
+  bcrypt.hash(password, saltRounds)
+    .then((hash) => {
+      User.create({
+        name,
+        about,
+        avatar,
+        email,
+        password: hash,
+      })
+        .then((newUser) => {
+          const { id } = newUser;
+          res.status(201).send({
+            name, about, avatar, email, id,
+          });
+        })
+        .catch((err) => {
+          if (err.code === 11000) {
+            return next(new ConflictError('Пользователь с таким email уже существует'));
+          }
+          if (err.name === 'ValidationError') {
+            return next(new BadRequest('Пользователь не создан, переданы невалидные данные'));
+          }
+          return next(err);
+        });
     });
 };
 
@@ -110,34 +108,16 @@ const updateAvatar = (req, res, next) => {
 const login = (req, res, next) => {
   const { email, password } = req.body;
 
-  if (!email || !password) {
-    throw new BadRequest('Не переданы email или пароль');
-  }
-
-  return User.findOne({ email }).select('+password')
-    .then((admin) => {
-      if (!admin) {
-        throw new UnauthorizedError('Пользователя с таким email не существует');
-      } else {
-        bcrypt.compare(password, admin.password, (err, isPasswordMatch) => {
-          if (!isPasswordMatch) {
-            return next(new UnauthorizedError('Неправильный пароль'));
-          }
-
-          const token = jwt.sign({ id: admin._id }, 'some-secret-key', { expiresIn: '7d' });
-
-          return res.status(200).send({ token });
-        });
-      }
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ id: user.id }, 'some-secret-key', { expiresIn: '7d' });
+      res.cookie('token', token, {
+        maxAge: 3600000,
+        httpOnly: true,
+        sameSite: true,
+      }).send({ token });
     })
-
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequest('Пользователь не найден, переданы невалидные данные'));
-      } else {
-        next(err);
-      }
-    });
+    .catch(next);
 };
 
 const getCurrentUser = (req, res, next) => {
@@ -150,14 +130,7 @@ const getCurrentUser = (req, res, next) => {
       }
       return res.status(200).send(user);
     })
-
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequest('Пользователь не найден, переданы невалидные данные'));
-      } else {
-        next(err);
-      }
-    });
+    .catch(next);
 };
 
 module.exports = {

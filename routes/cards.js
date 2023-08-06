@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
 const { errors } = require('celebrate');
@@ -10,18 +9,10 @@ const {
   dislikeCard,
 } = require('../controllers/cards');
 
+// возвращает все карточки
 router.get('/cards', getCards);
 
-router.put(
-  '/cards/:cardId/likes',
-  celebrate({
-    params: Joi.object().keys({
-      cardId: Joi.string().length(24).hex().required(),
-    }),
-  }),
-  likeCard,
-);
-
+// создаёт карточку места
 router.post(
   '/cards',
   celebrate({
@@ -34,16 +25,7 @@ router.post(
   createCard,
 );
 
-router.delete(
-  '/cards/:cardId/likes',
-  celebrate({
-    params: Joi.object().keys({
-      cardId: Joi.string().length(24).hex().required(),
-    }),
-  }),
-  dislikeCard,
-);
-
+// удаляет карточку по идентификатору
 router.delete(
   '/cards/:cardId',
   celebrate({
@@ -52,6 +34,28 @@ router.delete(
     }),
   }),
   deleteCardById,
+);
+
+// поставить лайк карточке
+router.put(
+  '/cards/:cardId/likes',
+  celebrate({
+    params: Joi.object().keys({
+      cardId: Joi.string().length(24).hex().required(),
+    }),
+  }),
+  likeCard,
+);
+
+// убрать лайк с карточки
+router.delete(
+  '/cards/:cardId/likes',
+  celebrate({
+    params: Joi.object().keys({
+      cardId: Joi.string().length(24).hex().required(),
+    }),
+  }),
+  dislikeCard,
 );
 
 router.use(errors());

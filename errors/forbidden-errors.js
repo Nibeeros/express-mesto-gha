@@ -1,4 +1,3 @@
-/* eslint-disable eol-last */
 class ForbiddenError extends Error {
   constructor(message) {
     super(message);

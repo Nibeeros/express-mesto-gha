@@ -1,4 +1,3 @@
-/* eslint-disable eol-last */
 class UnauthorizedError extends Error {
   constructor(message) {
     super(message);
