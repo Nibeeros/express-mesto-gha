@@ -1,8 +1,10 @@
-class NotFoundError extends Error {
+const { NOT_FOUND_ERROR } = require('../utils/constants');
+
+class NotFoundErr extends Error {
   constructor(message) {
     super(message);
-    this.statusCode = 404;
+    this.statusCode = NOT_FOUND_ERROR;
   }
 }
 
-module.exports = NotFoundError;
+module.exports = NotFoundErr;

@@ -1,8 +1,10 @@
-class ConflictError extends Error {
+const { CONFLICT_ERROR } = require('../utils/constants');
+
+class ConflictErr extends Error {
   constructor(message) {
     super(message);
-    this.statusCode = 409;
+    this.statusCode = CONFLICT_ERROR;
   }
 }
 
-module.exports = ConflictError;
+module.exports = ConflictErr;
